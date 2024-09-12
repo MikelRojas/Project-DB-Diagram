@@ -45,6 +45,7 @@ const DiagramInterface: React.FC = () => {
               <option>Conexión 1</option>
               <option>Conexión 2</option>
             </select>
+            
           </div>
           <div className="card p-3">
             <h6>Agregar Nueva Conexión</h6>
