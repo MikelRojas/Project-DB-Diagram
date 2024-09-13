@@ -13,42 +13,48 @@ router.get('/', async (req, res) => {
     }
 
     try {
-        let dbconfig = {
-            host: host || 'localhost',
-            user: user || 'sa',
-            password: password || 'password',
-            database: database,
-            port: port || 1433
-        };
+        let dbconfig;
 
         if (dbType === 'mysql') {
+            dbconfig = {
+                host: host || 'localhost',
+                user: user || 'root',
+                password: password || '',
+                database: database,
+                port: port || 3306
+            };
             const data = await controler.infodbmysql(dbconfig);
             answer.success(req, res, data, 200);
         } else if (dbType === 'sqlserver') {
+            dbconfig = {
+                server: host || 'localhost',
+                database: database,
+                user: user || 'sa',
+                password: password || 'password',
+                port: parseInt(port) || 1433,
+                options: {
+                    encrypt: true,
+                    trustServerCertificate: true
+                }
+            };
             const data = await controler.infodbsqlserver(dbconfig);
             answer.success(req, res, data, 200);
         } else if (dbType === 'postgresql') {
-            // Lógica para conexión a PostgreSQL u otra base de datos
-            /*
-            const { Client } = require('pg');
-            const client = new Client({
+            dbconfig = {
                 host: host || 'localhost',
                 user: user || 'postgres',
                 password: password || '',
-                database: database || 'prueba',
-                port: port || 5432
-            });
-
-            await client.connect();
-            console.log('PostgreSQL DB Connected!');
-            answer.success(req, res, 'Conexión exitosa a la base de datos PostgreSQL', 200);
-            await client.end();
-            */
+                database: database,
+                port: parseInt(port) || 5432
+            };
+            const data = await controler.infodbpostgresql(dbconfig);
+            answer.success(req, res, data, 200);
         } else {
             answer.error(req, res, 'Tipo de base de datos no soportado', 400);
         }
     } catch (error) {
-        answer.error(req, res, 'Error al obtener los datos', 500);
+        console.error('Error al realizar la operación:', error); // Log en la consola del servidor
+        answer.error(req, res, `Error al obtener los datos: ${error.message}`, 500); // Respuesta detallada al cliente
     }
 });
 

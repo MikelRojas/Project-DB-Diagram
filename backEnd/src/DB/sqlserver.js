@@ -1,21 +1,9 @@
 const sql = require('mssql');
 
 function sqlserverConnection(config) {
-  // Configuración de la conexión
-  const connectionConfig = {
-    user: config.user || 'sa',
-    password: config.password || 'password',
-    server: config.host || 'localhost',
-    database: config.database || 'test',
-    port: config.port || 1433,
-    options: {
-      encrypt: true, // Para conexiones seguras
-      trustServerCertificate: true, // Para evitar problemas con certificados en desarrollo
-    },
-  };
 
   // Crear la conexión
-  return sql.connect(connectionConfig)
+  return sql.connect(config)
     .then(pool => {
       if (pool.connecting) {
         console.log('Conectando a SQL Server...');
