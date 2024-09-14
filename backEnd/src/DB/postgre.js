@@ -26,19 +26,22 @@ function infodbpostgresql(dbconfig) {
     .then(client => {
       return client.query(`
         SELECT 
-            table_name AS TABLE_NAME,
-            column_name AS COLUMN_NAME,
-            data_type AS DATA_TYPE,
-            character_maximum_length AS CHARACTER_MAXIMUM_LENGTH,
-            is_nullable AS IS_NULLABLE,
-            column_default AS COLUMN_DEFAULT
+          c.table_schema AS SCHEMA_NAME,
+          c.table_name AS TABLE_NAME,
+          c.column_name AS COLUMN_NAME,
+          c.data_type AS DATA_TYPE,
+          c.character_maximum_length AS CHARACTER_MAXIMUM_LENGTH,
+          c.is_nullable AS IS_NULLABLE,
+          c.column_default AS COLUMN_DEFAULT
         FROM 
-            information_schema.columns
+          information_schema.columns c
         WHERE 
-            table_catalog = '${dbconfig.database}'
+          c.table_catalog = '${dbconfig.database}'  
+          AND c.table_schema NOT IN ('pg_catalog', 'information_schema') 
         ORDER BY 
-            table_name, 
-            ordinal_position;
+          c.table_schema, 
+          c.table_name, 
+          c.ordinal_position;
       `)
       .then(result => {
         client.end(); // Cerrar la conexión después de la consulta

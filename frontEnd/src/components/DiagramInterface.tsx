@@ -1,18 +1,10 @@
 import React, { useState } from 'react';
+import {ConnectionState} from '../components/interfaces'
+import {getGeneratedUrl} from '../DB/Mysql'
 
-interface ConnectionState {
-  databaseEngine: string;
-  user: string;
-  host: string;
-  password: string;
-  port: string;
-  dbName?: string;
-  serverType?: string;
-  serverName?: string;
-}
 
 const DiagramInterface: React.FC = () => {
-  const [connectionDetails, setConnectionDetails] = useState<ConnectionState>({
+  const [connectionDetails, setConnectionDetails] = useState<ConnectionState[]>([{
     databaseEngine: '',
     user: '',
     host: '',
@@ -21,14 +13,47 @@ const DiagramInterface: React.FC = () => {
     dbName: '',
     serverType: 'Database Engine',
     serverName: ''
-  });
+  }]);
+
+  const [indexConexion, SetIndexConexion] = useState(0);
+  const [diagram, setDiagram] = useState<string>('/');
+  const [connectionStatus, setConnectionStatus] = useState<string>('');
+  const [details, setDetails] = useState<string[]>([]); // Para almacenar las tablas
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setConnectionDetails(prevState => ({
-      ...prevState,
-      [name]: value,
-    }));
+    
+    // Crear una copia del array de conexiones
+    const updatedConnections = [...connectionDetails];
+
+    // Crear una copia del objeto que deseas modificar
+    const updatedConnection = {
+      ...updatedConnections[indexConexion],
+      [name]: value, // Actualizar el valor del campo correspondiente
+    };
+
+    // Reemplazar la conexión modificada en la copia del array
+    updatedConnections[indexConexion] = updatedConnection;
+
+    // Actualizar el estado con el nuevo array
+    setConnectionDetails(updatedConnections);
+  };
+
+  const handleConnect = async () => {
+    const answer = await getGeneratedUrl(connectionDetails[indexConexion]);
+    if (answer != null) {
+      console.log(await answer);
+      setConnectionStatus('Conexión exitosa');
+      const detail: string[] = [
+        `Host: ${connectionDetails[indexConexion].host}`,
+        `Puerto: ${connectionDetails[indexConexion].port}`,
+        `Usuario: ${connectionDetails[indexConexion].user}`
+      ];
+      setDetails(detail);
+      setDiagram(answer);
+    } else {
+      setConnectionStatus('Error de conexión');
+    }
   };
 
   return (
@@ -45,7 +70,6 @@ const DiagramInterface: React.FC = () => {
               <option>Conexión 1</option>
               <option>Conexión 2</option>
             </select>
-            
           </div>
           <div className="card p-3">
             <h6>Agregar Nueva Conexión</h6>
@@ -53,23 +77,23 @@ const DiagramInterface: React.FC = () => {
             <select
               className="form-select mb-2"
               name="databaseEngine"
-              value={connectionDetails.databaseEngine}
+              value={connectionDetails[indexConexion].databaseEngine}
               onChange={handleInputChange}
             >
               <option value="">Seleccione Motor</option>
-              <option value="Postgres">Postgres</option>
-              <option value="MySQL">MySQL</option>
-              <option value="SQLServer">SQL Server</option>
+              <option value="postgresql">Postgres</option>
+              <option value="mysql">MySQL</option>
+              <option value="sqlserver">SQL Server</option>
             </select>
 
-            {connectionDetails.databaseEngine === 'SQLServer' ? (
+            {connectionDetails[indexConexion].databaseEngine === 'SQLServer' ? (
               <>
                 <input
                   type="text"
                   name="serverType"
                   placeholder="Server Type"
                   className="form-control mb-2"
-                  value={connectionDetails.serverType}
+                  value={connectionDetails[indexConexion].serverType}
                   onChange={handleInputChange}
                 />
                 <input
@@ -77,7 +101,7 @@ const DiagramInterface: React.FC = () => {
                   name="serverName"
                   placeholder="Server Name"
                   className="form-control mb-2"
-                  value={connectionDetails.serverName}
+                  value={connectionDetails[indexConexion].serverName}
                   onChange={handleInputChange}
                 />
               </>
@@ -88,7 +112,7 @@ const DiagramInterface: React.FC = () => {
                   name="host"
                   placeholder="Host"
                   className="form-control mb-2"
-                  value={connectionDetails.host}
+                  value={connectionDetails[indexConexion].host}
                   onChange={handleInputChange}
                 />
                 <input
@@ -96,15 +120,7 @@ const DiagramInterface: React.FC = () => {
                   name="port"
                   placeholder="Port"
                   className="form-control mb-2"
-                  value={connectionDetails.port}
-                  onChange={handleInputChange}
-                />
-                <input
-                  type="text"
-                  name="dbName"
-                  placeholder="Database Name"
-                  className="form-control mb-2"
-                  value={connectionDetails.dbName}
+                  value={connectionDetails[indexConexion].port}
                   onChange={handleInputChange}
                 />
               </>
@@ -115,7 +131,15 @@ const DiagramInterface: React.FC = () => {
               name="user"
               placeholder="User"
               className="form-control mb-2"
-              value={connectionDetails.user}
+              value={connectionDetails[indexConexion].user}
+              onChange={handleInputChange}
+            />
+            <input
+              type="text"
+              name="dbName"
+              placeholder="Database Name"
+              className="form-control mb-2"
+              value={connectionDetails[indexConexion].dbName}
               onChange={handleInputChange}
             />
             <input
@@ -123,10 +147,11 @@ const DiagramInterface: React.FC = () => {
               name="password"
               placeholder="Password"
               className="form-control mb-2"
-              value={connectionDetails.password}
+              value={connectionDetails[indexConexion].password}
               onChange={handleInputChange}
             />
-            <button className="btn btn-success w-100">Conectar</button>
+            <button className="btn btn-success w-100" onClick={handleConnect}>Conectar</button>
+            {connectionStatus && <p>{connectionStatus}</p>}
           </div>
         </div>
 
@@ -134,20 +159,22 @@ const DiagramInterface: React.FC = () => {
           <div className="fields-buttons-container">
             <div className="field-group">
               <label>Motor:</label>
-              <input type="text" className="form-control" value={connectionDetails.databaseEngine} readOnly />
+              <input type="text" className="form-control" value={connectionDetails[indexConexion].databaseEngine} readOnly />
             </div>
             <div className="field-group">
               <label>Nombre Base:</label>
-              <input type="text" className="form-control" value={connectionDetails.dbName} readOnly />
+              <input type="text" className="form-control" value={connectionDetails[indexConexion].dbName} readOnly />
             </div>
             <div className="field-group">
-              <label>Tablas: </label>
+              <label>Detalles:</label>
               <select className="form-select">
-                <option>Seleccione</option>
-                <option>Tabla 1</option>
-                <option>Tabla 2</option>
-                <option>Tabla 3</option>
-                <option>Tabla 4</option>
+                {details.length === 0 ? (
+                  <option>No hay detalles</option>
+                ) : (
+                  details.map((table, index) => (
+                    <option key={index} value={table}>{table}</option>
+                  ))
+                )}
               </select>
             </div>
             <div className="button-group">
@@ -159,7 +186,13 @@ const DiagramInterface: React.FC = () => {
           </div>
 
           <div className="border p-4 text-center" style={{ height: "400px" }}>
-            <h5>Diagrama</h5>
+            {diagram === '/' ?(
+              <h5>Diagrama</h5>
+            ):(
+              <img src = {diagram} alt="Diagrama imaginario" />
+            )
+            }
+            
           </div>
 
           <div className="text-center mt-3">
@@ -172,11 +205,3 @@ const DiagramInterface: React.FC = () => {
 };
 
 export default DiagramInterface;
-
-
-
-
-
-
-
-

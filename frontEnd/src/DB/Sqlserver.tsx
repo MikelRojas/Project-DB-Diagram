@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-const Mysql: React.FC = () => {
+const Sqlserver: React.FC = () => {
   useEffect(() => {
     // Realizar la petición al backend cuando el componente se monta
     const fetchData = async () => {
@@ -44,4 +44,4 @@ const Mysql: React.FC = () => {
   );
 };
 
-export default Mysql;
+export default Sqlserver;

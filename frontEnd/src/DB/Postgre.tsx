@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 
-const PostgreSQL: React.FC = () => {
+const PostgreSQL = () => {
   useEffect(() => {
     // Realizar la petición al backend cuando el componente se monta
     const fetchData = async () => {
