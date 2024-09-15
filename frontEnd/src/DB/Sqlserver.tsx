@@ -1,47 +1,50 @@
-import React, { useEffect } from 'react';
+import { ConnectionState } from '../components/interfaces';
 
-const Sqlserver: React.FC = () => {
-  useEffect(() => {
-    // Realizar la petición al backend cuando el componente se monta
-    const fetchData = async () => {
-      // Construir la cadena de consulta
-      const params = new URLSearchParams({
-        dbType: 'sqlserver',
-        host: 'localhost',
-        user: 'sa',
-        password: 'marr5604',
-        database: 'TestNode',
-        port: '1433', 
-      }).toString();
+export const getGeneratedUrl2 = async (conState: ConnectionState): Promise<string | null> => {
+  const params = new URLSearchParams({
+    dbType: conState.databaseEngine,
+    host: conState.host,
+    user: conState.user,
+    password: conState.password,
+    database: conState.dbName || '',
+    port: conState.port, 
+  }).toString();
 
-      try {
-        // Realizar la solicitud GET con parámetros de consulta
-        const response = await fetch(`http://localhost:4050/api/clients?${params}`, {
-          method: 'GET', // Usar 'GET'
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+  const url = `http://localhost:4050/api/clients?${params}`;
+  console.log('URL de la petición:', url);
 
-        if (!response.ok) {
-          throw new Error('Error en la petición al servidor');
-        }
+  try {
+    // Imprimir la promesa generada
+    const promise = fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log('Promesa generada:', promise);
 
-        const data = await response.json();
-        console.log('Datos recibidos:', data);
-      } catch (error) {
-        console.error('Error realizando la petición:', error);
-      }
-    };
+    const response = await promise;
+    
+    // Imprimir el estado de la respuesta
+    console.log('Estado de la respuesta:', response.status);
 
-    fetchData();
-  }, []); // [] asegura que esto solo se ejecuta una vez cuando el componente se monta
+    if (!response.ok) {
+      throw new Error('Error en la petición al servidor');
+    }
 
-  return (
-    <div>
-      <h1>Conexion SQL Server </h1>
-    </div>
-  );
+    const data = await response.json();
+    
+    // Imprimir los datos obtenidos de la respuesta
+    console.log('Datos obtenidos de la respuesta:', data);
+
+    // Verificar que el status sea 200 y que no haya errores
+    if (data.status === 200 && !data.error) {
+      return data.body; // Retorna el URL generado por la API
+    }
+
+    throw new Error('Respuesta inválida del servidor');
+  } catch (error) {
+    console.error('Error realizando la petición:', error);
+    return null;
+  }
 };
-
-export default Sqlserver;
