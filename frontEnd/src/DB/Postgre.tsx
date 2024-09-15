@@ -1,47 +1,40 @@
-import { useEffect } from 'react';
+// postgresql.tsx
+import { ConnectionState } from '../components/interfaces';
 
-const PostgreSQL = () => {
-  useEffect(() => {
-    // Realizar la petición al backend cuando el componente se monta
-    const fetchData = async () => {
-      // Construir la cadena de consulta
-      const params = new URLSearchParams({
-        dbType: 'postgresql',
-        host: 'localhost',
-        user: 'postgres',
-        password: 'marr5604',
-        database: 'comedor-institucional',
-        port: '5432', // Los parámetros deben ser strings
-      }).toString();
+export const getGeneratedUrlPostgres = async (conState: ConnectionState): Promise<string | null> => {
+  const params = new URLSearchParams({
+    dbType: conState.databaseEngine,
+    host: conState.host,
+    user: conState.user,
+    password: conState.password,
+    database: conState.dbName || '',
+    port: conState.port, 
+  }).toString();
 
-      try {
-        // Realizar la solicitud GET con parámetros de consulta
-        const response = await fetch(`http://localhost:4050/api/clients?${params}`, {
-          method: 'GET', // Usar 'GET'
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+  const url = http://localhost:4050/api/clients?${params};
+  console.log('URL de la petición:', url);
 
-        if (!response.ok) {
-          throw new Error('Error en la petición al servidor');
-        }
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-        const data = await response.json();
-        console.log('Datos recibidos:', data);
-      } catch (error) {
-        console.error('Error realizando la petición:', error);
-      }
-    };
+    if (!response.ok) {
+      throw new Error('Error en la petición al servidor');
+    }
 
-    fetchData();
-  }, []); // [] asegura que esto solo se ejecuta una vez cuando el componente se monta
+    const data = await response.json();
 
-  return (
-    <div>
-      <h1>Interfaz de PostgreSQL</h1>
-    </div>
-  );
+    if (data.status === 200 && !data.error) {
+      return data.body; // Retorna el URL generado por la API
+    }
+
+    throw new Error('Respuesta inválida del servidor');
+  } catch (error) {
+    console.error('Error realizando la petición:', error);
+    return null;
+  }
 };
-
-export default PostgreSQL;
