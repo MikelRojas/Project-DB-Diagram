@@ -33,29 +33,39 @@ function generateUMLFromDbData(dbData) {
   `;
 
   const entities = {};
-  const relationships = [];
+  const relationships = new Set(); // Cambié a Set para evitar relaciones duplicadas
 
   dbData.forEach(row => {
-    const { TABLE_NAME, COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, COLUMN_KEY, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME } = row;
+    const { 
+      TABLE_NAME, 
+      COLUMN_NAME, 
+      DATA_TYPE, 
+      REFERENCED_TABLE_NAME, 
+      REFERENCED_COLUMN_NAME 
+    } = row;
 
+    // Crear entidad si no existe
     if (!entities[TABLE_NAME]) {
       entities[TABLE_NAME] = [];
     }
 
+    // Agregar columna a la entidad
     const columnDetails = `+${COLUMN_NAME} : ${DATA_TYPE}`;
     entities[TABLE_NAME].push(columnDetails);
 
+    // Si existe una tabla referenciada, agregar relación con cardinalidad
     if (REFERENCED_TABLE_NAME) {
-      relationships.push(`${REFERENCED_TABLE_NAME} ||..o{ ${TABLE_NAME}`);
+      const relationship = `${REFERENCED_TABLE_NAME} ||--o{ ${TABLE_NAME} : "${COLUMN_NAME} -> ${REFERENCED_COLUMN_NAME}"`;
+      relationships.add(relationship); // Usamos Set para evitar duplicados
     }
   });
 
-  // Crear las entidades en PlantUML
+  // Generar entidades en PlantUML
   for (const [tableName, columns] of Object.entries(entities)) {
     plantUMLString += `\nentity "${tableName}" as ${tableName} {\n  ${columns.join('\n  ')}\n}`;
   }
 
-  // Agregar relaciones
+  // Agregar relaciones con cardinalidad
   relationships.forEach(rel => {
     plantUMLString += `\n${rel}`;
   });
