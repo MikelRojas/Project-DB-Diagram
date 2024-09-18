@@ -79,9 +79,7 @@ const DiagramInterface: React.FC = () => {
       serverName: ''
     };
 
-    const updatedConnectionDetails = [...connectionDetails];
-    updatedConnectionDetails[indexConexion] = newConnection;
-    setConnectionDetails(updatedConnectionDetails);
+    
 
     if (connectionExists(newConnection) && connectionDetails.length !== 1) {
       console.log("La conexión ya existe.");
@@ -104,6 +102,9 @@ const DiagramInterface: React.FC = () => {
     const answer = await getGeneratedUrl(newConnection);
 
     if (answer != null) {
+      const updatedConnectionDetails = [...connectionDetails];
+      updatedConnectionDetails[indexConexion] = newConnection;
+      setConnectionDetails(updatedConnectionDetails);
       console.log(await answer);
       setConnectionStatus('Conexión exitosa');
       const detail: string[] = [
@@ -158,6 +159,21 @@ const DiagramInterface: React.FC = () => {
       const newIndex = Math.max(0, indexConexion - 1);
       setIndexConexion(newIndex);
       setConnectionStatus('Conexión eliminada');
+      
+      if(connectionDetails.length===1){
+        const nConnection: ConnectionState = {
+          databaseEngine: '',
+          user: '',
+          host: '',
+          password: '',
+          port: '',
+          dbName: '',
+          serverType: 'Database Engine',
+          serverName: ''
+        };
+        addConnection(nConnection);
+        addetails([]);
+      }
     } else {
       setConnectionStatus('No se puede eliminar la última conexión');
     }
@@ -180,18 +196,18 @@ const DiagramInterface: React.FC = () => {
       serverName: ''
     };
 
-    const updatedConnectionDetails = [...connectionDetails];
-    updatedConnectionDetails[indexConexion] = newConnection;
-    setConnectionDetails(updatedConnectionDetails);
-
     if (connectionExists(newConnection) && connectionDetails.length !== 1) {
       console.log("La conexión ya existe.");
       setConnectionStatus('Conexión ya existente');
+      return;
     }
 
     const answer = await getGeneratedUrl(newConnection);
 
     if (answer != null) {
+      const updatedConnectionDetails = [...connectionDetails];
+      updatedConnectionDetails[indexConexion] = newConnection;
+      setConnectionDetails(updatedConnectionDetails);
       console.log(await answer);
       setConnectionStatus('Conexión exitosa');
       const detail: string[] = [
@@ -256,11 +272,25 @@ const DiagramInterface: React.FC = () => {
       return;
     }
   
-    const link = document.createElement('a');
-    link.href = diagram;
-    link.download = 'diagrama.png'; // O el nombre que desees para el archivo
-    link.click();
+    fetch(diagram)
+      .then(response => response.blob())
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'diagrama.png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);  // Limpiar la URL
+      })
+      .catch(() => {
+        setConnectionStatus('Error al descargar el archivo');
+      });
   };
+  
+  
+ 
 
   const clearAllConnections = () => {
     // Limpiar el localStorage

@@ -6,19 +6,15 @@ function sqlserverConnection(config) {
   return sql.connect(config)
     .then(pool => {
       if (pool.connecting) {
-        console.log('Conectando a SQL Server...');
       }
-      console.log('Conexión a SQL Server establecida.');
       return pool;
     })
     .catch(err => {
-      console.error('Error al conectar a SQL Server:', err);
       throw err;
     });
 }
 
 function generateUMLFromDbData(dbData) {
-  console.log('Generando UML a partir de los datos de la base de datos...');
 
   let plantUMLString = `
   @startuml
@@ -61,8 +57,6 @@ function generateUMLFromDbData(dbData) {
   });
 
   plantUMLString += '\n@enduml';
-
-  console.log('Cadena PlantUML generada:', plantUMLString);
 
   return plantUMLString;
 }
@@ -112,14 +106,9 @@ function infodbsqlserver(dbconfig) {
 
       const encoded = plantUml.encode(plantUMLString);
 
-      console.log('PlantUML codificado:', encoded);
-
       const plantUMLUrl = `http://www.plantuml.com/plantuml/png/${encoded}`;
 
-      console.log('URL del diagrama PlantUML:', plantUMLUrl);
-
       return sql.close().then(() => {
-        console.log('Conexión a SQL Server cerrada.');
         return plantUMLUrl; 
       });
     })

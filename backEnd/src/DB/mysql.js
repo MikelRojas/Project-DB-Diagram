@@ -6,9 +6,11 @@ function mysqlconnection(dbconfig) {
   conexion.connect((err) => {
     if (err) {
       console.log(['db err'], err);
+      return;
       // Aquí puedes agregar una lógica adicional para reconectar si es necesario
     } else {
       console.log('DB Connected');
+      return conexion;
     }
   });
 
